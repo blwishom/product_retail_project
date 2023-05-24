@@ -92,8 +92,8 @@ class Review(db.Model):
     comment = db.Column(db.String(255))
     created_at = db.Column(db.DateTime)
     price = db.Column(db.Integer)
-    customer = db.relationship("Customer", backref="customer_id")
-    product = db.relationship("Product", backref="product_id")
+    customer = db.relationship("Customer", backref="customer_table")
+    product = db.relationship("Product", backref="product_table")
 
     def create(self):
       db.session.add(self)
