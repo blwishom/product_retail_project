@@ -11,7 +11,7 @@ class Product(db.Model):
     product_desc = db.Column(db.String(255))
     in_stock = db.Column(db.Integer, nullable=False )
     product_price = db.Column(db.Integer, nullable=False )
-    pproduct_category = db.Column(db.String(255))
+    product_category = db.Column(db.String(255))
 
     def create(self):
       db.session.add(self)
