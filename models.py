@@ -9,6 +9,14 @@ db = SQLAlchemy(app)
 
 
 ###Models####
+
+# ORDER_PRODUCT RELATIONAL TABLE
+order_product = db.Table(
+    'order_product',
+    db.Column('order_id', db.Integer, db.ForeignKey('order.order_id')),
+    db.Column('product_id', db.Integer, db.ForeignKey('product.product_id'))
+)
+
 # CUSTOMER MODEL
 class Customer(db.Model, UserMixin):
     __tablename__ = "customer"
@@ -57,12 +65,35 @@ class Product(db.Model):
       db.session.add(self)
       db.session.commit()
       return self
-    def __init__(self,produt_name,product_desc,in_stock,product_price,product_category):
-        self.produt_name = produt_name
+
+    def __init__(self,product_name, product_desc, in_stock, product_price, product_category):
+        self.product_name = product_name
         self.product_desc = product_desc
         self.in_stock = in_stock
         self.product_price = product_price
         self.product_category = product_category
+
+    def __repr__(self):
+        return '' % self.id
+
+# ORDER MODEL
+class Order(db.Model):
+    __tablename__ = "order"
+    price = db.Column(db.Integer, nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"))
+    product_id = db.Column(db.Integer, db.ForeignKey("product.id"))
+    customer = db.relationship("Customer", backref="customer")
+    product = db.relationship("Product", backref="product")
+
+    def create(self):
+      db.session.add(self)
+      db.session.commit()
+      return self
+
+    def __init__(self, price):
+        self.price = price
+
     def __repr__(self):
         return '' % self.id
 
@@ -90,7 +121,6 @@ class Review(db.Model):
 
     def __repr__(self):
         return '' % self.id
-
 
 
 db.create_all()
