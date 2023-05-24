@@ -1,10 +1,11 @@
 from flask import Flask, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
+# from flask_login import UserMixin
 
 app = Flask(__name__)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://<username>:<pass>@localhost:3306/<DB>'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///product_retail.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
 db = SQLAlchemy(app)
 
 
@@ -13,12 +14,13 @@ db = SQLAlchemy(app)
 # ORDER_PRODUCT RELATIONAL TABLE
 order_product = db.Table(
     'order_product',
+    db.Column('quantity', db.Integer, nullable=False),
     db.Column('order_id', db.Integer, db.ForeignKey('order.order_id')),
     db.Column('product_id', db.Integer, db.ForeignKey('product.product_id'))
 )
 
 # CUSTOMER MODEL
-class Customer(db.Model, UserMixin):
+class Customer(db.Model):
     __tablename__ = "customer"
 
     customer_id = db.Column(db.Integer, primary_key=True)
@@ -79,10 +81,11 @@ class Product(db.Model):
 # ORDER MODEL
 class Order(db.Model):
     __tablename__ = "order"
+    order_id = db.Column(db.Integer, primary_key=True)
     price = db.Column(db.Integer, nullable=False)
-    date = db.Column(db.Date, nullable=False)
-    customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"))
-    product_id = db.Column(db.Integer, db.ForeignKey("product.id"))
+    date = db.Column(db.DateTime, nullable=False)
+    customer_id = db.Column(db.Integer, db.ForeignKey("customer.customer_id"))
+    product_id = db.Column(db.Integer, db.ForeignKey("product.product_id"))
     customer = db.relationship("Customer", backref="customer")
     product = db.relationship("Product", backref="product")
 
@@ -101,11 +104,11 @@ class Order(db.Model):
 class Review(db.Model):
     __tablename__ = "review"
     review_id = db.Column(db.Integer, primary_key=True)
-    customer_id = db.Column(db.Integer, db.ForeignKey("customer.id"))
-    product_id = db.Column(db.Integer, db.ForeignKey("product.id"))
+    customer_id = db.Column(db.Integer, db.ForeignKey("customer.customer_id"))
+    product_id = db.Column(db.Integer, db.ForeignKey("product.product_id"))
     rating = db.Column(db.Float)
     comment = db.Column(db.String(255))
-    created_at = db.Column(db.Datetime)
+    created_at = db.Column(db.DateTime)
     price = db.Column(db.Integer)
     customer = db.relationship("Customer", backref="customer")
     product = db.relationship("Product", backref="product")
