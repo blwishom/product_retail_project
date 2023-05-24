@@ -19,10 +19,12 @@ class Customer(db.Model):
     __tablename__ = "customer"
 
     customer_id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(255), unique=True, nullable=False)
+    first_name = db.Column(db.String(255), unique=False, nullable=False)
+    last_name = db.Column(db.String(255), unique=False, nullable=False)
     username = db.Column(db.String(255), unique=True, nullable=False)
-    hashed_password = db.Column(db.String(255), nullable=False)
     address = db.Column(db.String(255), nullable=False)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    hashed_password = db.Column(db.String(255), nullable=False)
 
     def create(self):
       db.session.add(self)
