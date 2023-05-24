@@ -10,3 +10,15 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
+
+    customer = Customer(first_name="Sherwin",
+                        last_name="Manchester",
+                        username="sherman",
+                        email= "smanchester@gmail.com",
+                        address="222 Plum Ln Pocatello, Id",
+                        hashed_password= "stheman")
+    
+    db.session.add(customer)
+    db.session.commit()
+    
+    

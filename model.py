@@ -42,11 +42,6 @@ class Customer(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password, password)
 
-    def __init__(self, email, username, address):
-        self.email = email
-        self.username = username
-        self.address = address
-
     def __repr__(self):
         return '' % self.id
 
@@ -64,13 +59,6 @@ class Product(db.Model):
       db.session.add(self)
       db.session.commit()
       return self
-
-    def __init__(self,product_name, product_desc, in_stock, product_price, product_category):
-        self.product_name = product_name
-        self.product_desc = product_desc
-        self.in_stock = in_stock
-        self.product_price = product_price
-        self.product_category = product_category
 
     def __repr__(self):
         return '' % self.id
@@ -91,9 +79,6 @@ class Order(db.Model):
       db.session.commit()
       return self
 
-    def __init__(self, price):
-        self.price = price
-
     def __repr__(self):
         return '' % self.id
 
@@ -107,17 +92,13 @@ class Review(db.Model):
     comment = db.Column(db.String(255))
     created_at = db.Column(db.DateTime)
     price = db.Column(db.Integer)
-    customer = db.relationship("Customer", backref="customer")
-    product = db.relationship("Product", backref="product")
+    customer = db.relationship("Customer", backref="customer_id")
+    product = db.relationship("Product", backref="product_id")
 
     def create(self):
       db.session.add(self)
       db.session.commit()
       return self
-
-    def __init__(self, rating, comment, created_at, price):
-        self.rating = rating
-        self.comment = comment
 
     def __repr__(self):
         return '' % self.id
