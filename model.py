@@ -1,9 +1,9 @@
-from flask import Flask, request, jsonify, make_response
+#from flask import Flask, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 # from flask_login import UserMixin
-from app import *
 
+db = SQLAlchemy()
 ###Models####
 
 # ORDER_PRODUCT RELATIONAL TABLE
@@ -121,6 +121,3 @@ class Review(db.Model):
 
     def __repr__(self):
         return '' % self.id
-
-
-db.create_all()
