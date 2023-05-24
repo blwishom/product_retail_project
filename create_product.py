@@ -8,6 +8,7 @@ db = SQLAlchemy(app)
 class Product(db.Model):
     __tablename__ = "Product"
     product_id = db.Column(db.Integer, primary_key=True)
+    product_name = db.Column(db.String(255))
     product_desc = db.Column(db.String(255))
     in_stock = db.Column(db.Integer, nullable=False )
     product_price = db.Column(db.Integer, nullable=False )
@@ -17,7 +18,8 @@ class Product(db.Model):
       db.session.add(self)
       db.session.commit()
       return self
-    def __init__(self,product_desc,in_stock,product_price,product_category):
+    def __init__(self,produt_name,product_desc,in_stock,product_price,product_category):
+        self.produt_name = produt_name
         self.product_desc = product_desc
         self.in_stock = in_stock
         self.product_price = product_price
