@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import desc
+from sqlalchemy import desc, or_
 from model import db, Customer, Product, Order, Review, order_product
 import datetime
 
@@ -29,9 +29,65 @@ def customer(id):
     customers = Customer.query.all()
     return 'customer id route'
 
+#creating a customer review on a product
+@app.route('/reviews', methods=['POST'])
+def create_review():
+    data = request.get_json()
+    customer_id = data['customer_id']
+    product_id = data['product_id']
+    rating = data['rating']
+    comment = data['comment']
+    created_at = datetime.datetime.now()
+
+    review = Review(
+        customer_id=customer_id,
+        product_id=product_id,
+        rating=rating,
+        comment=comment,
+        created_at=created_at
+        )
+    db.session.add(review)
+    db.session.commit()
+
+    return jsonify({'message': 'Review created successfully'}), 201
+
+# viewing all customer reviews
+@app.route('/reviews', methods=['GET'])
+def view_reviews():
+    reviews = Review.query.all()
+    review_list = []
+    for review in reviews:
+        review_data = {
+            'review_id': review.review_id,
+            'customer_id': review.customer_id,
+            'product_id': review.product_id,
+            'rating': review.rating,
+            'comment': review.comment,
+            'created_at': review.created_at
+        }
+        review_list.append(review_data)
+    
+    return jsonify({'reviews': review_list}), 200
+
+
+@app.route('/reviews/search', methods=['GET'])
+def search_reviews():
+    search_query = request.args.get('q', '') 
+    results = Review.query.filter(or_(Review.customer.has(Customer.username.ilike(f'%{search_query}%')),
+                                      Review.product.has(Product.product_name.ilike(f'%{search_query}%')))).all()
+    
+    serialized_results = [{'review_id': result.review_id,
+                       'customer_id': result.customer_id,
+                       'product_id': result.product_id,
+                       'rating': result.rating,
+                       'comment': result.comment,
+                       'created_at': result.created_at} for result in results]
+    
+    return jsonify(serialized_results)
+
 @app.route('/products/')
 def products():
-    return 'entire product listing'
+    return 'Products landing page: add help for how to use?'
 
 @app.route('/products/sortby=<string:category>/')
 def product_sort(category):
@@ -54,100 +110,45 @@ def product_sort(category):
                            'product_name': result.product_name,
                            'in_stock': result.in_stock,
                            'product_price': result.product_price,
+                           'product_desc' : result.product_desc,
                            'product_category': result.product_category,
                            'product_brand': result.product_brand} for result in results]
 
     return jsonify(serialized_results)
 
-with app.app_context():
-    db.create_all()
+#Make a product
+@app.route('/products/add', methods=['POST'])
+def create_product():
 
-    customer1 = Customer(first_name="Sherwin",
-                        last_name="Manchester",
-                        username="sherman",
-                        email= "smanchester@gmail.com",
-                        address="222 Plum Ln Pocatello, Id",
-                        hashed_password= "stheman")
-    
-    customer2 = Customer(first_name="Carlo",
-                        last_name="Morrison",
-                        username="cmorrison",
-                        email= "cmorrison101@gmail.com",
-                        address="367 Ranger Ct Ruidoso, Nm",
-                        hashed_password= "pass12345")
-    
-    customer3 = Customer(first_name="Neve",
-                        last_name="Reilly",
-                        username="catluvr234",
-                        email= "catluvr234@gmail.com",
-                        address="473 Opal Ave Oxford, Mi",
-                        hashed_password= "calicotabby4")
-    
-    customer4 = Customer(first_name="Zane",
-                        last_name="Hester",
-                        username="coppiceintoned",
-                        email= "coppiceintoned@gmail.com",
-                        address="777 Oracle Blvd Herkimer, Ny",
-                        hashed_password= "uG7q9PL8")
-    
-    customer5 = Customer(first_name="Ellis",
-                        last_name="Knoxx",
-                        username="guitarrh3ro",
-                        email= "gh3roknoxx@gmail.com",
-                        address="894 Rayhan Rd Dayton, Tn",
-                        hashed_password= "helloflask!")
-    
-    product1 = Product(product_name="Oversized Chicago Bulls 6 Rings T-Shirt",
-                        product_desc="Images from the Chicago Bulls final championship during their dynamic run of winning 6 NBA championships in the 90s.",
-                        in_stock=10,
-                        product_price= 24.99,
-                        product_category="Shirts",
-                        )
+    data = request.get_json()
+    product_id = data['product_id']
+    product_name = data['product_name']
+    product_desc = data['product_desc']
+    in_stock = data['in_stock']
+    product_price = data['product_price']
+    product_category = data['product_category']
+    product_brand = data['product_brand']
 
-    product2 = Product(product_name = "T-Shirt",
-                        product_desc = "A classic through and through, Gap mens long sleeve t shirts the ideal addition to his wardrobe. With a soft jersey knit, long sleeves, a crew neckline, and banded cuffs, Gap long sleeve shirts for men are a must for his lifestyle.",
-                        in_stock = 12,
-                        product_price = 14.99,
-                        product_category = "CLOTHING",
-                        product_brand = "GAP")
+    product = Product(
+        product_id = product_id,
+        product_name = product_name,
+        product_desc = product_desc,
+        in_stock = in_stock,
+        product_price = product_price,
+        product_category = product_category,
+        product_brand = product_brand
+        )
+    db.session.add(product)
+    db.session.commit()
 
-    #how can we get our order price to be calculated based on product and quantity
-    order =     Order(price = 31.57,
-                      date = datetime.datetime.today(),
-                      customer_id = 1,
-                      product_id = 1)
+    return jsonify({'message': 'Product created successfully'}), 201
 
-    review =    Review(customer_id = 1,
-                       product_id = 1,
-                       rating = 4.5,
-                       comment = '''This is a wonderful product and the material is great.
-                       Definitely Will be buying more products like this.''',
-                       created_at = datetime.datetime.today())
+#redirect from an empty input?
+@app.route('/products/add')
+def create_product_info():
+    return "To enter a product, send a JSON object with the following items: product_id, product_name, product_desc, in_stock, product_price, product_category, product_brand"
 
-    app.run(debug=True)
-
-    order_product_data = [
-            {'order_id': 1, 'product_id': 1, 'quantity': 2}
-        ]
-
-    for data in order_product_data:
-        db.session.execute(order_product.insert().values(data))
-
-    print("[DEBUG] finished adding entries")
-    
-#    db.session.add(customer1)
-#    db.session.add(customer2)
-#    db.session.add(customer3)
-#    db.session.add(customer4)
-#    db.session.add(customer5)
-
-#    db.session.add(product1)
-#    db.session.add(product2)
-#    db.session.add(order)
-#    db.session.add(review)
-
-#    db.session.commit()
-
+if __name__ == "__main__":
     app.run(debug=True)
   
     
