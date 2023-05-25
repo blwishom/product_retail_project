@@ -185,12 +185,12 @@ def create_product():
     db.session.commit()
 
     return jsonify({'message': 'Product created successfully'}), 201
-'''
+
 #redirect from an empty input?
 @app.route('/products/add')
 def create_product_info():
     return "To enter a product, send a JSON object with the following items: product_id, product_name, product_desc, in_stock, product_price, product_category, product_brand"
-'''
+
 #View products
 @app.route('/products/sortby=<string:category>/')
 def product_sort(category):
