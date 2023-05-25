@@ -62,7 +62,8 @@ class Product(db.Model):
     product_price = db.Column(db.Float, nullable=False )
     product_category = db.Column(db.String(255))
     product_brand = db.Column(db.String(255))
-
+    updated_at = db.Column(db.DateTime)
+    
     def create(self):
       db.session.add(self)
       db.session.commit()

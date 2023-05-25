@@ -17,6 +17,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
 
 db.init_app(app)
 
+with app.app_context():
+    db.create_all()
+
 #LOGIN/MAIN
 
 @app.route('/')
@@ -182,12 +185,12 @@ def create_product():
     db.session.commit()
 
     return jsonify({'message': 'Product created successfully'}), 201
-
+'''
 #redirect from an empty input?
 @app.route('/products/add')
 def create_product_info():
     return "To enter a product, send a JSON object with the following items: product_id, product_name, product_desc, in_stock, product_price, product_category, product_brand"
-
+'''
 #View products
 @app.route('/products/sortby=<string:category>/')
 def product_sort(category):
@@ -238,6 +241,7 @@ def update_product(product_id):
         product.product_category = data['product_category']
     if 'product_brand' in data:
         product.product_brand = data['product_brand']
+    product.updated_at = datetime.datetime.now()
 
     # Save the changes to the database
     try:
