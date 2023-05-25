@@ -1,5 +1,12 @@
 # with app.app_context():
 #     db.create_all()
+from model import *
+import datetime
+import app
+
+
+with app.app_context():
+    db.create_all()
 
 #     customer1 = Customer(first_name="Sherwin",
 #                         last_name="Manchester",
