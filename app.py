@@ -22,7 +22,7 @@ def signup():
 def login():
     customers = Customer.query.all()
     customer_dict = {'customers': [customer.to_dict() for customer in customers]}
-    return
+    return customer_dict
 
 @app.route('/customer/<int:id>/')
 # @login_required
