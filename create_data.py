@@ -1,5 +1,5 @@
 from connection import create_connection
-from model import Customer
+from model import Customer, Product
 
 def insert_customer(conn, customer: model.Customer):
     cursor = conn.cursor()
@@ -9,12 +9,12 @@ def insert_customer(conn, customer: model.Customer):
 
     return cursor.lastrowid
 
-# def insert_product(conn, product: dict):
-#     sql = "INSERT INTO product (name) VALUES (?)"
-#     cursor = conn.cursor()
-#     cursor.execute(sql, [product["name"]])
-#     conn.commit()
-#     return cursor.lastrowid
+def insert_product(conn, product: dict):
+    sql = "INSERT INTO product (product_name, product_desc, in_stock, product_price, product_category) VALUES (?, ?, ?, ?, ?)"
+    cursor = conn.cursor()
+    cursor.execute(sql, [product["name"]])
+    conn.commit()
+    return cursor.lastrowid
 
 
 
