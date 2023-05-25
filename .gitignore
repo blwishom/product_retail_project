@@ -1,2 +1,3 @@
 product_retail.db
 __pycache__
+app.secrect_key = 't9G807GMeiCqrORZ'
