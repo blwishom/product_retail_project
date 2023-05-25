@@ -37,9 +37,9 @@ def login():
     form = LoginForm()
     form['csrf_token'].data = request.cookies['csrf_token']
     if form.validate_on_submit():
-        user = User.query.filter(User.email == form.data['email']).first()
-        login_user(user)
-        return user.to_dict()
+        customer = Customer.query.filter(Customer.email == form.data['email']).first()
+        login_user(customer)
+        return customer.to_dict()
     return {'errors': validation_errors_to_error_messages(form.errors)}, 401
 
 @app.route('/customer')
@@ -113,9 +113,10 @@ def search_reviews():
 def products():
     return 'products/sortby=category: view all products by product id (category=id), quantity in stock (category=stock), or price (price) | products/add: add a product to the catalogue'
 
-@app.route('/products/sortby=<string:category>/')
-def product_sort(category):
+app.run# @app.route('/products/sortby=<string:category>/')
+# def product_sort(category):
 
+<<<<<<< HEAD
     match(category):
         case "id":
             results = db.session.execute(db.select(Product).order_by( desc("product_id"))).scalars()
@@ -129,6 +130,21 @@ def product_sort(category):
         case _ :
             return "invalid query!"
         
+=======
+#     match(category):
+#         case "id":
+#             results = db.session.execute(db.select(Product).order_by( desc("product_id"))).scalars()
+
+#         case "stock":
+#             results = db.session.execute(db.select(Product).order_by( desc("in_stock"))).scalars()
+
+#         case "price":
+#             results = db.session.execute(db.select(Product).order_by( desc("product_price"))).scalars()
+
+#         case _ :
+#             return "invalid query!"
+
+>>>>>>> 0f12275e00ff398bc548583b44b18a3925d3073d
     # Serialize the results into a list of dictionaries
     serialized_results = [{'product_id': result.product_id,
                            'product_name': result.product_name,
