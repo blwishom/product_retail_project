@@ -51,6 +51,26 @@ def create_review():
 
     return jsonify({'message': 'Review created successfully'}), 201
 
+
+# viewing all products
+@app.route('/products', methods=['GET'])
+def view_products():
+    products = Product.query.all()
+    product_list = []
+    for product in products:
+        product_data = {
+            'product_id': product.product_id,
+            'product_name': product.product_name,
+            'product_desc': product.product_desc,
+            'in_stock': product.in_stock,
+            'product_price': product.product_price,
+            'product_category': product.product_category,
+            'product_brand': product.product_brand
+        }
+        product_list.append(product_data)
+    
+    return jsonify({'products': product_list}), 200
+
 # viewing all customer reviews
 @app.route('/reviews', methods=['GET'])
 def view_reviews():
@@ -85,6 +105,64 @@ def search_reviews():
     
     return jsonify(serialized_results)
 
+# Update a review record
+@app.route('/reviews/<int:review_id>', methods=['PUT'])
+def update_review(review_id):
+    # Retrieve the review from the database
+    review = Review.query.get(review_id)
+    if not review:
+        return jsonify({'message': 'Review not found'}), 404
+
+    # Update the review attributes based on the request data
+    data = request.get_json()
+    if 'rating' in data:
+        review.rating = data['rating']
+    if 'comment' in data:
+        review.comment = data['comment']
+    if 'customer_id' in data:
+        review.customer_id = data['customer_id']
+    if 'product_id' in data:
+        review.product_id = data['product_id']
+    review.updated_at = datetime.datetime.now()
+    
+    # Save the changes to the database
+    try:
+        db.session.commit()
+        return jsonify({'message': 'Review updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': 'Error updating review', 'error': str(e)}), 500
+
+# Update a product record
+@app.route('/products/<int:product_id>', methods=['PUT'])
+def update_product(product_id):
+    # Retrieve the product from the database
+    product = Product.query.get(product_id)
+    if not product:
+        return jsonify({'message': 'Product not found'}), 404
+
+    # Update the product attributes based on the request data
+    data = request.get_json()
+    if 'product_name' in data:
+        product.product_name = data['product_name']
+    if 'product_desc' in data:
+        product.product_desc = data['product_desc']
+    if 'in_stock' in data:
+        product.in_stock = data['in_stock']
+    if 'product_price' in data:
+        product.product_price = data['product_price']
+    if 'product_category' in data:
+        product.product_category = data['product_category']
+    if 'product_brand' in data:
+        product.product_brand = data['product_brand']
+
+    # Save the changes to the database
+    try:
+        db.session.commit()
+        return jsonify({'message': 'Product updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': 'Error updating product', 'error': str(e)}), 500
 
 
 
