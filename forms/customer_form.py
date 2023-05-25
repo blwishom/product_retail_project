@@ -8,7 +8,7 @@ def customer_exists(form, field):
     email = field.data
     customer = Customer.query.filter(Customer.email == email).first()
     if not customer:
-        raise ValidationError('Email provided not found.')
+        raise ValidationError('Email provided was not found.')
 
 
 def password_matches(form, field):
