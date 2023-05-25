@@ -60,8 +60,13 @@ def customer_home(id):
 
 #REVIEW
 
+#review landing page/how-to
+@app.route('/reviews/')
+def products():
+    return 'reviews/view: view all reviews || reviews/search?q=(keyword): search by product name or reviewer username || reviews/add: create a review || /reviews/(review id): update an existing review'
+
 #creating a customer review on a product
-@app.route('/reviews', methods=['POST'])
+@app.route('/reviews/add', methods=['POST'])
 def create_review():
     data = request.get_json()
     customer_id = data['customer_id']
@@ -83,7 +88,7 @@ def create_review():
     return jsonify({'message': 'Review created successfully'}), 201
 
 # viewing all customer reviews
-@app.route('/reviews', methods=['GET'])
+@app.route('/reviews/view', methods=['GET'])
 def view_reviews():
     reviews = Review.query.all()
     review_list = []
@@ -146,6 +151,11 @@ def update_review(review_id):
 
 #PRODUCTS
 
+#product landing page/how-to
+@app.route('/products/')
+def products():
+    return 'products/sortby=category: view all products by product id (category=id), quantity in stock (category=stock), or price (price) || products/add: add a product to the catalogue || products/(id): update an item (PUT) or delete an item (DELETE)'
+
 #Make a product
 @app.route('/products/add', methods=['POST'])
 def create_product():
@@ -205,10 +215,6 @@ def product_sort(category):
                            'product_brand': result.product_brand} for result in results]
 
     return jsonify(serialized_results)
-
-@app.route('/products/')
-def products():
-    return 'products/sortby=category: view all products by product id (category=id), quantity in stock (category=stock), or price (price) | products/add: add a product to the catalogue'
 
 # Update a product record
 @app.route('/products/<int:product_id>', methods=['PUT'])
