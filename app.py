@@ -65,7 +65,7 @@ def customer_home(id):
 
 #review landing page/how-to
 @app.route('/reviews/')
-def products():
+def reviews():
     return 'reviews/view: view all reviews || reviews/search?q=(keyword): search by product name or reviewer username || reviews/add: create a review || /reviews/(review id): update an existing review'
 
 #creating a customer review on a product
