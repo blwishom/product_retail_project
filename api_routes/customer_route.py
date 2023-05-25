@@ -2,7 +2,6 @@ from flask import Flask
 from flask import Blueprint, jsonify
 from flask_login import login_required
 
-
 app = Flask(__name__)
 customer_routes = Blueprint('customers', __name__)
 
