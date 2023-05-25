@@ -1,7 +1,9 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField
 from wtforms.validators import DataRequired, Email, ValidationError
-from ..model import Customer
+from flask_cors import CORS
+from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 
 def customer_exists(form, field):
@@ -23,6 +25,6 @@ def password_matches(form, field):
         raise ValidationError('Password was incorrect.')
 
 class LoginForm(FlaskForm):
-    email = StringField('email', validators=[DataRequired(), user_exists])
+    email = StringField('email', validators=[DataRequired(), customer_exists])
     password = StringField('password', validators=[
                            DataRequired(), password_matches])

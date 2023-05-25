@@ -1,11 +1,16 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from model import db, Customer, Product, Order, Review, order_product
-from forms import *
+from forms.customer_form import LoginForm
 import datetime
+import secrets
 from sqlalchemy import or_
+from flask_cors import CORS
+from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 
 app = Flask(__name__)
+app.secret_key = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///product_retail.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
 
@@ -20,14 +25,31 @@ def signup():
     return 'customer signup route'
 
 @app.route('/login')
+def get_csrf_token():
+    # Generates CSRF token
+    csrf_token = generate_csrf()
+    response = jsonify({'csrf_token': csrf_token})
+    response.set_cookie('csrf_token', csrf_token, secure=True, httponly=True, samesite='Strict')
+    return response
 def login():
+    # Logs a user in
+    form = LoginForm()
+    form['csrf_token'].data = request.cookies['csrf_token']
+    if form.validate_on_submit():
+        user = User.query.filter(User.email == form.data['email']).first()
+        login_user(user)
+        return user.to_dict()
+    return {'errors': validation_errors_to_error_messages(form.errors)}, 401
+
+@app.route('/customer')
+def customer():
     customers = Customer.query.all()
     customer_dict = {'customers': [customer.to_dict() for customer in customers]}
     return customer_dict
 
 @app.route('/customer/<int:id>/')
 # @login_required
-def customer(id):
+def customer_home(id):
     customers = Customer.query.all()
     return 'customer id route'
 
@@ -68,23 +90,23 @@ def view_reviews():
             'created_at': review.created_at
         }
         review_list.append(review_data)
-    
+
     return jsonify({'reviews': review_list}), 200
 
 
 @app.route('/reviews/search', methods=['GET'])
 def search_reviews():
-    search_query = request.args.get('q', '') 
+    search_query = request.args.get('q', '')
     results = Review.query.filter(or_(Review.customer.has(Customer.username.ilike(f'%{search_query}%')),
                                       Review.product.has(Product.product_name.ilike(f'%{search_query}%')))).all()
-    
+
     serialized_results = [{'review_id': result.review_id,
                        'customer_id': result.customer_id,
                        'product_id': result.product_id,
                        'rating': result.rating,
                        'comment': result.comment,
                        'created_at': result.created_at} for result in results]
-    
+
     return jsonify(serialized_results)
 
 
