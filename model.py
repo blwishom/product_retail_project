@@ -9,9 +9,9 @@ db = SQLAlchemy()
 # ORDER_PRODUCT RELATIONAL TABLE
 order_product = db.Table(
     'order_product',
-    db.Column('quantity', db.Integer, nullable=False),
     db.Column('order_id', db.Integer, db.ForeignKey('order.order_id')),
-    db.Column('product_id', db.Integer, db.ForeignKey('product.product_id'))
+    db.Column('product_id', db.Integer, db.ForeignKey('product.product_id')),
+    db.Column('quantity', db.Integer, nullable=False)
 )
 
 # CUSTOMER MODEL
@@ -52,8 +52,9 @@ class Product(db.Model):
     product_name = db.Column(db.String(255))
     product_desc = db.Column(db.String(255))
     in_stock = db.Column(db.Integer, nullable=False )
-    product_price = db.Column(db.Integer, nullable=False )
+    product_price = db.Column(db.Float, nullable=False )
     product_category = db.Column(db.String(255))
+    product_brand = db.Column(db.String(255))
 
     def create(self):
       db.session.add(self)
@@ -67,7 +68,7 @@ class Product(db.Model):
 class Order(db.Model):
     __tablename__ = "order"
     order_id = db.Column(db.Integer, primary_key=True)
-    price = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Float, nullable=False)
     date = db.Column(db.DateTime, nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey("customer.customer_id"))
     product_id = db.Column(db.Integer, db.ForeignKey("product.product_id"))
@@ -91,7 +92,6 @@ class Review(db.Model):
     rating = db.Column(db.Float)
     comment = db.Column(db.String(255))
     created_at = db.Column(db.DateTime)
-    price = db.Column(db.Integer)
     customer = db.relationship("Customer", backref="customer_table")
     product = db.relationship("Product", backref="product_table")
 
