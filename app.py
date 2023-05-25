@@ -171,6 +171,8 @@ def create_product():
     product_price = data['product_price']
     product_category = data['product_category']
     product_brand = data['product_brand']
+    updated_at = datetime.datetime.now()
+
 
     product = Product(
         product_id = product_id,
@@ -179,7 +181,8 @@ def create_product():
         in_stock = in_stock,
         product_price = product_price,
         product_category = product_category,
-        product_brand = product_brand
+        product_brand = product_brand,
+        updated_at = updated_at
         )
     db.session.add(product)
     db.session.commit()
@@ -215,7 +218,8 @@ def product_sort(category):
                            'product_price': result.product_price,
                            'product_desc' : result.product_desc,
                            'product_category': result.product_category,
-                           'product_brand': result.product_brand} for result in results]
+                           'product_brand': result.product_brand,
+                           'updated_at': result.updated_at} for result in results]
 
     return jsonify(serialized_results)
 
