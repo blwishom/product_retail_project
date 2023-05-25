@@ -112,7 +112,7 @@ def search_reviews():
 
 @app.route('/products/')
 def products():
-    return 'Products landing page: add help for how to use?'
+    return 'products/sortby=category: view all products by product id (category=id), quantity in stock (category=stock), or price (category=price) | products/add: add a product to the catalogue'
 
 app.run# @app.route('/products/sortby=<string:category>/')
 # def product_sort(category):
