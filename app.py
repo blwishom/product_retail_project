@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import desc, or_
 from model import db, Customer, Product, Order, Review, order_product
@@ -45,12 +45,11 @@ def login():
 @app.route('/customer')
 def customer():
     customers = Customer.query.all()
-    customer_dict = {'customers': [customer.to_dict() for customer in customers]}
-    return customer_dict
+    return 'customer login route'
 
 @app.route('/customer/<int:id>/')
 # @login_required
-def customer_home(id):
+def customer(id):
     customers = Customer.query.all()
     return 'customer id route'
 
@@ -91,28 +90,28 @@ def view_reviews():
             'created_at': review.created_at
         }
         review_list.append(review_data)
-
+    
     return jsonify({'reviews': review_list}), 200
 
 
 @app.route('/reviews/search', methods=['GET'])
 def search_reviews():
-    search_query = request.args.get('q', '')
+    search_query = request.args.get('q', '') 
     results = Review.query.filter(or_(Review.customer.has(Customer.username.ilike(f'%{search_query}%')),
                                       Review.product.has(Product.product_name.ilike(f'%{search_query}%')))).all()
-
+    
     serialized_results = [{'review_id': result.review_id,
                        'customer_id': result.customer_id,
                        'product_id': result.product_id,
                        'rating': result.rating,
                        'comment': result.comment,
                        'created_at': result.created_at} for result in results]
-
+    
     return jsonify(serialized_results)
 
 @app.route('/products/')
 def products():
-    return 'products/sortby=category: view all products by product id (category=id), quantity in stock (category=stock), or price (category=price) | products/add: add a product to the catalogue'
+    return 'products/sortby=category: view all products by product id (category=id), quantity in stock (category=stock), or price (price) | products/add: add a product to the catalogue'
 
 @app.route('/products/sortby=<string:category>/')
 def product_sort(category):
@@ -120,16 +119,16 @@ def product_sort(category):
     match(category):
         case "id":
             results = db.session.execute(db.select(Product).order_by( desc("product_id"))).scalars()
-
+            
         case "stock":
             results = db.session.execute(db.select(Product).order_by( desc("in_stock"))).scalars()
-
+            
         case "price":
             results = db.session.execute(db.select(Product).order_by( desc("product_price"))).scalars()
 
         case _ :
             return "invalid query!"
-
+        
     # Serialize the results into a list of dictionaries
     serialized_results = [{'product_id': result.product_id,
                            'product_name': result.product_name,
@@ -174,3 +173,7 @@ def create_product_info():
     return "To enter a product, send a JSON object with the following items: product_id, product_name, product_desc, in_stock, product_price, product_category, product_brand"
 
 if __name__ == "__main__":
+    app.run(debug=True)
+  
+    
+    
