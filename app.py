@@ -17,6 +17,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
 
 db.init_app(app)
 
+#LOGIN/MAIN
+
 @app.route('/')
 def landing_page():
     return 'product retail landing page'
@@ -42,6 +44,8 @@ def login():
         return user.to_dict()
     return {'errors': 'validation_errors_to_error_messages'(form.errors)}, 401
 
+#CUSTOMER
+
 @app.route('/customer')
 def customer():
     customers = Customer.query.all()
@@ -53,6 +57,8 @@ def customer():
 def customer_home(id):
     customers = Customer.query.all()
     return 'customer id route'
+
+#REVIEW
 
 #creating a customer review on a product
 @app.route('/reviews', methods=['POST'])
@@ -109,6 +115,8 @@ def search_reviews():
                        'created_at': result.created_at} for result in results]
     
     return jsonify(serialized_results)
+
+#PRODUCTS
 
 @app.route('/products/')
 def products():
