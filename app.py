@@ -111,7 +111,8 @@ def search_reviews():
                        'product_id': result.product_id,
                        'rating': result.rating,
                        'comment': result.comment,
-                       'created_at': result.created_at} for result in results]
+                       'created_at': result.created_at,
+                       'updated_at': result.updated_at} for result in results]
     
     return jsonify(serialized_results)
 
