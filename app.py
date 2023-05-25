@@ -42,7 +42,7 @@ def login():
         user = Customer.query.filter(Customer.email == form.data['email']).first()
         form.login_user(user)
         return user.to_dict()
-    return {'errors': 'validation_errors_to_error_messages'(form.errors)}, 401
+    return {'errors': 'validation_errors_to_error_messages' (form.errors)}, 401
 
 #CUSTOMER
 
@@ -100,7 +100,6 @@ def view_reviews():
     
     return jsonify({'reviews': review_list}), 200
 
-
 @app.route('/reviews/search', methods=['GET'])
 def search_reviews():
     search_query = request.args.get('q', '') 
@@ -116,38 +115,35 @@ def search_reviews():
     
     return jsonify(serialized_results)
 
+# Update a review record
+@app.route('/reviews/<int:review_id>', methods=['PUT'])
+def update_review(review_id):
+    # Retrieve the review from the database
+    review = Review.query.get(review_id)
+    if not review:
+        return jsonify({'message': 'Review not found'}), 404
+
+    # Update the review attributes based on the request data
+    data = request.get_json()
+    if 'rating' in data:
+        review.rating = data['rating']
+    if 'comment' in data:
+        review.comment = data['comment']
+    if 'customer_id' in data:
+        review.customer_id = data['customer_id']
+    if 'product_id' in data:
+        review.product_id = data['product_id']
+    review.updated_at = datetime.datetime.now()
+    
+    # Save the changes to the database
+    try:
+        db.session.commit()
+        return jsonify({'message': 'Review updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': 'Error updating review', 'error': str(e)}), 500
+
 #PRODUCTS
-
-@app.route('/products/')
-def products():
-    return 'products/sortby=category: view all products by product id (category=id), quantity in stock (category=stock), or price (price) | products/add: add a product to the catalogue'
-
-@app.route('/products/sortby=<string:category>/')
-def product_sort(category):
-
-    match(category):
-        case "id":
-            results = db.session.execute(db.select(Product).order_by( desc("product_id"))).scalars()
-            
-        case "stock":
-            results = db.session.execute(db.select(Product).order_by( desc("in_stock"))).scalars()
-            
-        case "price":
-            results = db.session.execute(db.select(Product).order_by( desc("product_price"))).scalars()
-
-        case _ :
-            return "invalid query!"
-        
-    # Serialize the results into a list of dictionaries
-    serialized_results = [{'product_id': result.product_id,
-                           'product_name': result.product_name,
-                           'in_stock': result.in_stock,
-                           'product_price': result.product_price,
-                           'product_desc' : result.product_desc,
-                           'product_category': result.product_category,
-                           'product_brand': result.product_brand} for result in results]
-
-    return jsonify(serialized_results)
 
 #Make a product
 @app.route('/products/add', methods=['POST'])
@@ -180,6 +176,69 @@ def create_product():
 @app.route('/products/add')
 def create_product_info():
     return "To enter a product, send a JSON object with the following items: product_id, product_name, product_desc, in_stock, product_price, product_category, product_brand"
+
+#View products
+@app.route('/products/sortby=<string:category>/')
+def product_sort(category):
+
+    match(category):
+        case "id":
+            results = db.session.execute(db.select(Product).order_by( desc("product_id"))).scalars()
+            
+        case "stock":
+            results = db.session.execute(db.select(Product).order_by( desc("in_stock"))).scalars()
+            
+        case "price":
+            results = db.session.execute(db.select(Product).order_by( desc("product_price"))).scalars()
+
+        case _ :
+            return "invalid query!"
+        
+    # Serialize the results into a list of dictionaries
+    serialized_results = [{'product_id': result.product_id,
+                           'product_name': result.product_name,
+                           'in_stock': result.in_stock,
+                           'product_price': result.product_price,
+                           'product_desc' : result.product_desc,
+                           'product_category': result.product_category,
+                           'product_brand': result.product_brand} for result in results]
+
+    return jsonify(serialized_results)
+
+@app.route('/products/')
+def products():
+    return 'products/sortby=category: view all products by product id (category=id), quantity in stock (category=stock), or price (price) | products/add: add a product to the catalogue'
+
+# Update a product record
+@app.route('/products/<int:product_id>', methods=['PUT'])
+def update_product(product_id):
+    # Retrieve the product from the database
+    product = Product.query.get(product_id)
+    if not product:
+        return jsonify({'message': 'Product not found'}), 404
+
+    # Update the product attributes based on the request data
+    data = request.get_json()
+    if 'product_name' in data:
+        product.product_name = data['product_name']
+    if 'product_desc' in data:
+        product.product_desc = data['product_desc']
+    if 'in_stock' in data:
+        product.in_stock = data['in_stock']
+    if 'product_price' in data:
+        product.product_price = data['product_price']
+    if 'product_category' in data:
+        product.product_category = data['product_category']
+    if 'product_brand' in data:
+        product.product_brand = data['product_brand']
+
+    # Save the changes to the database
+    try:
+        db.session.commit()
+        return jsonify({'message': 'Product updated successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': 'Error updating product', 'error': str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)

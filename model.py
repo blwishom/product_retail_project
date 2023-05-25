@@ -99,6 +99,7 @@ class Review(db.Model):
     rating = db.Column(db.Float)
     comment = db.Column(db.String(255))
     created_at = db.Column(db.DateTime)
+    updated_at = db.Column(db.DateTime)
     customer = db.relationship("Customer", backref="customer_table")
     product = db.relationship("Product", backref="product_table")
 
