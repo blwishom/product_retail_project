@@ -1,3 +1,8 @@
+from model import *
+import datetime
+import app
+
+
 with app.app_context():
     db.create_all()
 
