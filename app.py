@@ -239,6 +239,23 @@ def update_product(product_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': 'Error updating product', 'error': str(e)}), 500
+    
+#DELETE A PRODUCT
+@app.route('/products/<int:product_id>', methods=['DELETE'])
+def delete_product(product_id):
+    # Retrieve the product from the database
+    product = Product.query.get(product_id)
+    if not product:
+        return jsonify({'message': 'Product not found'}), 404
+
+    # Delete the product from the database
+    try:
+        db.session.delete(product)
+        db.session.commit()
+        return jsonify({'message': 'Product deleted successfully'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': 'Error deleting product', 'error': str(e)}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)
