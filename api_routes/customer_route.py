@@ -1,25 +1,27 @@
-# from flask import Flask
-# from flask import Blueprint, jsonify
-# from flask_login import login_required
+# from flask import Flask, request, jsonify
+# from flask_sqlalchemy import SQLAlchemy
+# from ..model import Customer
+# import datetime
 
+# @app.route('/')
+# def landing_page():
+#     return 'product retail landing page'
 
-# app = Flask(__name__)
-# customer_routes = Blueprint('customers', __name__)
+# @app.route('/signup')
+# def signup():
+#     return 'customer signup route'
 
+# @app.route('/login')
+# def login():
+#     customers = Customer.query.all()
+#     return 'customer login route'
 
-# # @app.route('/login')
-# # # @login_required
-# # def customers():
-# #     # customers = Customer.query.all()
-# #     # return {'customers': [customer.to_dict() for customer in customers]}
-# #     return 'Hello'
-
-
-# @customer_routes.route('/<int:id>')
-# @login_required
+# @app.route('/customer/<int:id>/')
+# # @login_required
 # def customer(id):
-#     customer = Customer.query.get(id)
-#     return customer.to_dict()
+#     customers = Customer.query.all()
+#     return 'customer id route'
+
 
 # if __name__ == "__main__":
-#     app.run(debug=False)
+#     app.run(debug=True)

@@ -31,6 +31,15 @@ class Customer(db.Model):
       db.session.commit()
       return self
 
+    def to_dict(self):
+      return {
+        'first name': self.first_name,
+        'last name': self.last_name,
+        'username': self.username,
+        'address': self. address,
+        'email': self. email
+      }
+
     @property
     def password(self):
         return self.hashed_password

@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from model import db, Customer, Product, Order, Review, order_product
+from forms import *
 import datetime
 
 app = Flask(__name__)
@@ -20,7 +21,8 @@ def signup():
 @app.route('/login')
 def login():
     customers = Customer.query.all()
-    return 'customer login route'
+    customer_dict = {'customers': [customer.to_dict() for customer in customers]}
+    return
 
 @app.route('/customer/<int:id>/')
 # @login_required
