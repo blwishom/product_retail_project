@@ -66,7 +66,7 @@ def customer_home(id):
 #review landing page/how-to
 @app.route('/reviews/')
 def reviews():
-    return 'reviews/view: view all reviews || reviews/search?q=(keyword): search by product name or reviewer username || reviews/add: create a review || /reviews/(review id): update an existing review'
+    return render_template('reviews.html')
 
 #creating a customer review on a product
 @app.route('/reviews/add', methods=['POST'])
@@ -157,7 +157,7 @@ def update_review(review_id):
 #product landing page/how-to
 @app.route('/products/')
 def products():
-    return 'products/sortby=category: view all products by product id (category=id), quantity in stock (category=stock), or price (price) || products/add: add a product to the catalogue || products/(id): update an item (PUT) or delete an item (DELETE)'
+    return render_template('products.html')
 
 #Make a product
 @app.route('/products/add', methods=['POST'])
