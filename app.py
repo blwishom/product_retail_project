@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, make_response, redirect
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import desc, or_
 from model import db, Customer, Product, Order, Review, order_product
@@ -9,6 +9,8 @@ from sqlalchemy import or_
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect, generate_csrf
+from flask import flash
+
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
@@ -22,7 +24,7 @@ with app.app_context():
 
 #LOGIN/MAIN
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def landing_page():
     return 'product retail landing page'
 
@@ -30,25 +32,27 @@ def landing_page():
 def signup():
     return 'customer signup route'
 
-@app.route('/login')
-def get_csrf_token():
-    # Generates CSRF token
-    csrf_token = generate_csrf()
-    response = jsonify({'csrf_token': csrf_token})
-    response.set_cookie('csrf_token', csrf_token, secure=True, httponly=True, samesite='Strict')
-    return response
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    # Logs a user in
     form = LoginForm()
-    form['csrf_token'].data = request.cookies['csrf_token']
+    csrf_token = generate_csrf()
+    response = make_response(render_template('login.html', form=form))
+    response.set_cookie('csrf_token', csrf_token, secure=True, httponly=True, samesite='Strict')
+
     if form.validate_on_submit():
-        user = Customer.query.filter(Customer.email == form.data['email']).first()
-        form.login_user(user)
-        return user.to_dict()
-    return {'errors': 'validation_errors_to_error_messages' (form.errors)}, 401
+        username = form.username.data
+        password = form.password.data
+        customers = Customer.query.all()
+        customer_dict = {'customers': [customer.to_dict() for customer in customers]}
+        if customer and customer.check_password(password):
+            return redirect('/')
+        else:
+            error = 'Invalid credentials'
+            return render_template("login.html", form=form, error=error)
+
+    return response
 
 #CUSTOMER
-
 @app.route('/customer')
 def customer():
     customers = Customer.query.all()
@@ -105,15 +109,15 @@ def view_reviews():
             'created_at': review.created_at
         }
         review_list.append(review_data)
-    
+
     return jsonify({'reviews': review_list}), 200
 
 @app.route('/reviews/search', methods=['GET'])
 def search_reviews():
-    search_query = request.args.get('q', '') 
+    search_query = request.args.get('q', '')
     results = Review.query.filter(or_(Review.customer.has(Customer.username.ilike(f'%{search_query}%')),
                                       Review.product.has(Product.product_name.ilike(f'%{search_query}%')))).all()
-    
+
     serialized_results = [{'review_id': result.review_id,
                        'customer_id': result.customer_id,
                        'product_id': result.product_id,
@@ -121,7 +125,7 @@ def search_reviews():
                        'comment': result.comment,
                        'created_at': result.created_at,
                        'updated_at': result.updated_at} for result in results]
-    
+
     return jsonify(serialized_results)
 
 # Update a review record
@@ -143,7 +147,7 @@ def update_review(review_id):
     if 'product_id' in data:
         review.product_id = data['product_id']
     review.updated_at = datetime.datetime.now()
-    
+
     # Save the changes to the database
     try:
         db.session.commit()
@@ -195,33 +199,33 @@ def create_product_info():
     return "To enter a product, send a JSON object with the following items: product_id, product_name, product_desc, in_stock, product_price, product_category, product_brand"
 '''
 #View products
-@app.route('/products/sortby=<string:category>/')
-def product_sort(category):
+# @app.route('/products/sortby=<string:category>/')
+# def product_sort(category):
 
-    match(category):
-        case "id":
-            results = db.session.execute(db.select(Product).order_by( desc("product_id"))).scalars()
-            
-        case "stock":
-            results = db.session.execute(db.select(Product).order_by( desc("in_stock"))).scalars()
-            
-        case "price":
-            results = db.session.execute(db.select(Product).order_by( desc("product_price"))).scalars()
+#     match(category):
+#         case "id":
+#             results = db.session.execute(db.select(Product).order_by( desc("product_id"))).scalars()
 
-        case _ :
-            return "invalid query!"
-        
-    # Serialize the results into a list of dictionaries
-    serialized_results = [{'product_id': result.product_id,
-                           'product_name': result.product_name,
-                           'in_stock': result.in_stock,
-                           'product_price': result.product_price,
-                           'product_desc' : result.product_desc,
-                           'product_category': result.product_category,
-                           'product_brand': result.product_brand,
-                           'updated_at': result.updated_at} for result in results]
+#         case "stock":
+#             results = db.session.execute(db.select(Product).order_by( desc("in_stock"))).scalars()
 
-    return jsonify(serialized_results)
+#         case "price":
+#             results = db.session.execute(db.select(Product).order_by( desc("product_price"))).scalars()
+
+#         case _ :
+#             return "invalid query!"
+
+#     # Serialize the results into a list of dictionaries
+#     serialized_results = [{'product_id': result.product_id,
+#                            'product_name': result.product_name,
+#                            'in_stock': result.in_stock,
+#                            'product_price': result.product_price,
+#                            'product_desc' : result.product_desc,
+#                            'product_category': result.product_category,
+#                            'product_brand': result.product_brand,
+#                            'updated_at': result.updated_at} for result in results]
+
+#     return jsonify(serialized_results)
 
 # Update a product record
 @app.route('/products/<int:product_id>', methods=['PUT'])
@@ -254,7 +258,7 @@ def update_product(product_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': 'Error updating product', 'error': str(e)}), 500
-    
+
 #DELETE A PRODUCT
 @app.route('/products/<int:product_id>', methods=['DELETE'])
 def delete_product(product_id):
@@ -274,6 +278,3 @@ def delete_product(product_id):
 
 if __name__ == "__main__":
     app.run(debug=True)
-  
-    
-    
