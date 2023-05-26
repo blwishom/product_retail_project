@@ -1,56 +1,76 @@
-from flask import Flask, request, jsonify, render_template, make_response, redirect
+from flask import Flask, jsonify, request, redirect, render_template
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 from sqlalchemy import desc, or_
-from model import db, Customer, Product, Order, Review, order_product
-from forms.customer_form import LoginForm
+from model import db, Customer, Product, Review
+from forms.login_form import LoginForm
+from forms.signup_form import SignUpForm
 import datetime
 import secrets
-from sqlalchemy import or_
-from flask_cors import CORS
-from flask_migrate import Migrate
-from flask_wtf.csrf import CSRFProtect, generate_csrf
-from flask import flash
-
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///product_retail.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['WTF_CSRF_SECRET_KEY'] = secrets.token_hex(16)
 
 db.init_app(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 
-with app.app_context():
-    db.create_all()
+@login_manager.user_loader
+def load_user(customer_id):
+    return Customer.query.get(customer_id)
 
-#LOGIN/MAIN
+@login_manager.unauthorized_handler
+def unauthorized_callback():
+    return redirect('/login')
 
 @app.route('/', methods=['GET', 'POST'])
-def landing_page():
-    return 'product retail landing page'
+def home():
+    return 'Product Retail Home Page'
 
-@app.route('/signup')
+@app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    return 'customer signup route'
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        existing_customer = Customer.query.filter_by(username=username).first()
+        if existing_customer:
+            return render_template('signup.html', error='Username is already taken')
+
+        new_customer = Customer(username=username)
+        new_customer.set_password(password)
+        db.session.add(new_customer)
+        db.session.commit()
+
+        return redirect('/login')
+
+    return render_template('signup.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    form = LoginForm()
-    csrf_token = generate_csrf()
-    response = make_response(render_template('login.html', form=form))
-    response.set_cookie('csrf_token', csrf_token, secure=True, httponly=True, samesite='Strict')
+    if current_user.is_authenticated:
+        return redirect('/')
 
+    form = LoginForm()
     if form.validate_on_submit():
-        username = form.username.data
-        password = form.password.data
-        customers = Customer.query.all()
-        customer_dict = {'customers': [customer.to_dict() for customer in customers]}
-        if customer and customer.check_password(password):
+        customer = Customer.query.filter_by(username=form.username.data).first()
+        if customer and customer.check_password(form.password.data):
+            login_user(customer)
             return redirect('/')
         else:
-            error = 'Invalid credentials'
-            return render_template("login.html", form=form, error=error)
+            return 'Invalid username or password'
 
-    return response
+    return render_template('login.html', form=form)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect('/login')
+
 
 #CUSTOMER
 @app.route('/customer')

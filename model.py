@@ -1,7 +1,7 @@
 #from flask import Flask, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
-# from flask_login import UserMixin
+from flask_login import UserMixin
 
 db = SQLAlchemy()
 ###Models####
@@ -40,16 +40,14 @@ class Customer(db.Model):
         'email': self. email
       }
 
-    @property
-    def password(self):
-        return self.hashed_password
-
-    @password.setter
-    def password(self, password):
+    def set_password(self, password):
         self.hashed_password = generate_password_hash(password)
 
     def check_password(self, password):
-        return check_password_hash(self.password, password)
+        return check_password_hash(self.hashed_password, password)
+
+    def get_id(self):
+        return str(self.customer_id)
 
 
 # PRODUCT MODEL
@@ -63,7 +61,7 @@ class Product(db.Model):
     product_category = db.Column(db.String(255))
     product_brand = db.Column(db.String(255))
     updated_at = db.Column(db.DateTime)
-    
+
     def create(self):
       db.session.add(self)
       db.session.commit()
