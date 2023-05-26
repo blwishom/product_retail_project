@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Update Product</title>
+  
+</head>
+<body>
+  <h1>Update Product</h1>
+  <form method="POST" action="/products/update/updating">
+    <label for="product_id">Product ID:</label>
+    <input type="text" name="product_id" id="product_id" required><br>
+    <label for="product_name">Product Name:</label>
+    <input type="text" name="product_name" id="product_name" required><br>
+    <label for="product_desc">Product Description:</label>
+    <input type="text" name="product_desc" id="product_desc" required><br>
+    <label for="in_stock"># in Stock:</label>
+    <input type="text" name="in_stock" id="in_stock" required><br>
+    <label for="product_price">Product Price:</label>
+    <input type="text" name="product_price" id="product_price" required><br>
+    <label for="product_category">Product Category:</label>
+    <input type="text" name="product_category" id="product_category" required><br>
+    <label for="product_brand">Product Brand:</label>
+    <input type="text" name="product_brand" id="product_brand" required><br>
+
+    <!-- Submit button -->
+    <input type="submit" value="Update Product">
+    <br>
+    <a href="/products/">Back</a>
+  </form>
+
+  {% if success_message %}
+  <div id="success-message">
+    {{ success_message }}
+    <br>
+    <button onclick="redirectToPage('/products/update')">Go Back</button>
+  </div>
+  {% endif %}
+
+  <script>
+    // Function to redirect to a specific page
+    function redirectToPage(route) {
+      window.location.href = route;
+    }
+  </script>
+
+</body>
+</html>

@@ -1,8 +1,8 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import desc, or_
 from model import db, Customer, Product, Order, Review, order_product
-from forms.customer_form import LoginForm
+#from forms.customer_form import LoginForm
 import datetime
 import secrets
 from sqlalchemy import or_
@@ -13,9 +13,12 @@ from flask_wtf.csrf import CSRFProtect, generate_csrf
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///product_retail.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['WTF_CSRF_SECRET_KEY'] = secrets.token_hex(16)
 
 db.init_app(app)
+#login_manager = LoginManager(app)
+#login_manager.login_view = 'login'
 
 with app.app_context():
     db.create_all()
@@ -24,7 +27,7 @@ with app.app_context():
 
 @app.route('/')
 def landing_page():
-    return 'product retail landing page'
+    return render_template('landing.html')
 
 @app.route('/signup')
 def signup():
@@ -37,6 +40,7 @@ def get_csrf_token():
     response = jsonify({'csrf_token': csrf_token})
     response.set_cookie('csrf_token', csrf_token, secure=True, httponly=True, samesite='Strict')
     return response
+
 def login():
     # Logs a user in
     form = LoginForm()
@@ -48,7 +52,6 @@ def login():
     return {'errors': 'validation_errors_to_error_messages' (form.errors)}, 401
 
 #CUSTOMER
-
 @app.route('/customer')
 def customer():
     customers = Customer.query.all()
@@ -159,43 +162,78 @@ def update_review(review_id):
 def products():
     return render_template('products.html')
 
-#Make a product
-@app.route('/products/add', methods=['POST'])
-def create_product():
+@app.route('/products/view')
+def view_products():
+    return render_template('view_products.html')
 
-    data = request.get_json()
-    product_id = data['product_id']
-    product_name = data['product_name']
-    product_desc = data['product_desc']
-    in_stock = data['in_stock']
-    product_price = data['product_price']
-    product_category = data['product_category']
-    product_brand = data['product_brand']
+@app.route('/products/view/search')
+def search_product():
+    return render_template('search_product.html')
+
+# Update a product record
+@app.route('/products/update', methods=['GET', 'POST'])
+def render_update_product_form():
+    success_message = None
+
+    if request.method == 'POST':
+        # Process the form data and update the product in the database
+        # ...
+
+        # Set the success message
+        success_message = 'Product updated successfully'
+
+        # Redirect back to the update page
+        return redirect('/products/update')
+
+    return render_template('update_product.html', success_message=success_message)
+
+@app.route('/products/delete', methods=['GET', 'DELETE', 'POST'])
+def render_delete_product():
+    return render_template('delete_product.html')
+
+
+@app.route('/products/created')
+def product_created():
+    return 'Product created successfully!'
+
+@app.route('/products/added', methods=['POST'])
+def create_product():
+    product_name = request.form['product_name']
+    product_desc = request.form['product_desc']
+    in_stock = request.form['in_stock']
+    product_price = request.form['product_price']
+    product_category = request.form['product_category']
+    product_brand = request.form['product_brand']
     updated_at = datetime.datetime.now()
 
-
     product = Product(
-        product_id = product_id,
-        product_name = product_name,
-        product_desc = product_desc,
-        in_stock = in_stock,
-        product_price = product_price,
-        product_category = product_category,
-        product_brand = product_brand,
-        updated_at = updated_at
-        )
+        
+        product_name=product_name,
+        product_desc=product_desc,
+        in_stock=in_stock,
+        product_price=product_price,
+        product_category=product_category,
+        product_brand=product_brand,
+        updated_at=updated_at
+    )
     db.session.add(product)
     db.session.commit()
 
-    return jsonify({'message': 'Product created successfully'}), 201
+    # Retrieve the success message from the form data
+    success_message = request.form.get('success_message')
 
-#redirect from an empty input?
-@app.route('/products/add')
-def create_product_info():
-    return "To enter a product, send a JSON object with the following items: product_id, product_name, product_desc, in_stock, product_price, product_category, product_brand"
+    return render_template('product_created.html', success_message=success_message)
+
+
+@app.route('/products/add', methods=['GET', 'POST'])
+def render_add_product_form():
+    if request.method == 'POST':
+        return create_product()
+    else:
+        return render_template('add_product.html')
 
 #View products
-@app.route('/products/sortby=<string:category>/')
+@app.route('/products/view/sortby=<string:category>/', methods=['GET'])
 def product_sort(category):
 
     match(category):
@@ -223,57 +261,93 @@ def product_sort(category):
 
     return jsonify(serialized_results)
 
+#search products
+@app.route('/products/view/search/display', methods=['GET'])
+def search_products():
+    # Get the search query from the request parameters
+    search_query = request.args.get('q', '')
+
+    # Perform the search query on the Product model
+    products = Product.query.filter(
+        or_(
+            Product.product_name.ilike(f'%{search_query}%'),
+            Product.product_desc.ilike(f'%{search_query}%'),
+            Product.product_category.ilike(f'%{search_query}%'),
+            Product.product_brand.ilike(f'%{search_query}%')
+        )
+    ).all()
+
+    # Serialize the products into a JSON response
+    product_list = []
+    for product in products:
+        product_data = {
+            'product_id': product.product_id,
+            'product_name': product.product_name,
+            'product_desc': product.product_desc,
+            'in_stock': product.in_stock,
+            'product_price': product.product_price,
+            'product_category': product.product_category,
+            'product_brand': product.product_brand,
+            'updated_at': product.updated_at
+        }
+        product_list.append(product_data)
+
+    return jsonify({'products': product_list})
+
+
 # Update a product record
-@app.route('/products/<int:product_id>', methods=['PUT'])
-def update_product(product_id):
+@app.route('/products/update/updating', methods=['POST'])
+def update_product():
+    # Retrieve the product ID from the request data
+    product_id = request.form.get('product_id')
+    
     # Retrieve the product from the database
     product = Product.query.get(product_id)
     if not product:
         return jsonify({'message': 'Product not found'}), 404
 
     # Update the product attributes based on the request data
-    data = request.get_json()
-    if 'product_name' in data:
-        product.product_name = data['product_name']
-    if 'product_desc' in data:
-        product.product_desc = data['product_desc']
-    if 'in_stock' in data:
-        product.in_stock = data['in_stock']
-    if 'product_price' in data:
-        product.product_price = data['product_price']
-    if 'product_category' in data:
-        product.product_category = data['product_category']
-    if 'product_brand' in data:
-        product.product_brand = data['product_brand']
+    product.product_name = request.form.get('product_name')
+    product.product_desc = request.form.get('product_desc')
+    product.in_stock = request.form.get('in_stock')
+    product.product_price = request.form.get('product_price')
+    product.product_category = request.form.get('product_category')
+    product.product_brand = request.form.get('product_brand')
     product.updated_at = datetime.datetime.now()
-
-    # Save the changes to the database
+        
+     # Save the changes to the database
     try:
+        
         db.session.commit()
-        return jsonify({'message': 'Product updated successfully'})
+        return redirect(url_for('update_success'))
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': 'Error updating product', 'error': str(e)}), 500
-    
-#DELETE A PRODUCT
-@app.route('/products/<int:product_id>', methods=['DELETE'])
-def delete_product(product_id):
+
+@app.route('/products/update/success')
+def update_success():
+    return render_template('update_success.html')
+
+
+@app.route('/products/delete/deleting', methods=['DELETE', 'POST'])
+def delete_product():
+    # Retrieve the product ID from the request data
+    product_id = request.form.get('product_id')
+
     # Retrieve the product from the database
     product = Product.query.get(product_id)
     if not product:
         return jsonify({'message': 'Product not found'}), 404
 
     # Delete the product from the database
-    try:
-        db.session.delete(product)
-        db.session.commit()
-        return jsonify({'message': 'Product deleted successfully'})
-    except Exception as e:
-        db.session.rollback()
-        return jsonify({'message': 'Error deleting product', 'error': str(e)}), 500
+    db.session.delete(product)
+    db.session.commit()
+
+    return redirect(url_for('delete_success'))
+
+@app.route('/products/delete/success')
+def delete_success():
+    return render_template('delete_success.html')
 
 if __name__ == "__main__":
     app.run(debug=True)
-  
-    
-    

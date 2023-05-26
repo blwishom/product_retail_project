@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Delete Product</title>
+</head>
+<body>
+  <h1>Delete Product</h1>
+  <form id="deleteProductForm" method="POST" action="/products/delete/deleting">
+    <label for="product_id">Product ID:</label>
+    <input type="text" name="product_id" id="product_id" required><br>
+
+    <!-- Confirmation dialog -->
+    <script>
+      function confirmDelete() {
+        return confirm("Are you sure you want to delete this product?");
+      }
+
+      document.getElementById("deleteProductForm").onsubmit = confirmDelete;
+    </script>
+
+    <!-- Submit button -->
+    <input type="submit" value="Delete Product">
+    <br>
+    <a href="/products/">Back</a>
+  </form>
+</body>
+</html>
