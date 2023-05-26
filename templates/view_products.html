@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Product Retail - Menu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+        }
+        
+        .menu {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .menu-item {
+            margin: 0 10px;
+        }
+        
+        .menu-link {
+            text-decoration: none;
+            color: #337ab7;
+        }
+    </style>
+</head>
+<body>
+    <h1>View Product By:</h1>
+    <div class="menu">
+        <div class="menu-item">
+            <a class="menu-link" href="/products/view/sortby=id/">Product ID</a>
+        </div>
+        <div class="menu-item">
+            <a class="menu-link" href="/products/view/sortby=stock/">In Stock</a>
+        </div>
+        <div class="menu-item">
+            <a class="menu-link" href="/products/view/sortby=price/">Product Price</a>
+        </div>
+        <div class="menu-item">
+            <a class="menu-link" href="/products/view/search">Search Product</a>
+        </div>
+    </div>
+    <a href="/products/">Back</a>
+    <!-- Rest of the page content -->
+</body>
+</html>
