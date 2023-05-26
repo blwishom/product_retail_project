@@ -40,6 +40,10 @@ class Customer(db.Model):
         'email': self. email
       }
 
+    @property
+    def password(self):
+        return self.hashed_password
+
     def set_password(self, password):
         self.hashed_password = generate_password_hash(password)
 
