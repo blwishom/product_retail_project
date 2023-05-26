@@ -1,25 +1,42 @@
-from flask_wtf import FlaskForm
-from wtforms import StringField
-from wtforms.validators import DataRequired, Email, ValidationError
-from model import Customer
 
+class SignUpForm:
+    def __init__(self, data):
+        self.first_name = data.get('first_name', '')
+        self.last_name = data.get('last_name', '')
+        self.email = data.get('email', '')
+        self.password = data.get('password', '')
+        self.confirm_password = data.get('confirm_password', '')
 
-def user_exists(form, field):
-    email = field.data
-    customer = Customer.query.filter(Customer.email == email).first()
-    if customer:
-        raise ValidationError('Email address is already in use.')
+    def validate(self):
+        errors = []
 
+        if not self.first_name:
+            errors.append('Please enter first name.')
 
-def username_exists(form, field):
-    username = field.data
-    customer = Customer.query.filter(Customer.username == username).first()
-    if customer:
-        raise ValidationError('Username is already in use.')
+        if not self.last_name:
+            errors.append('Please enter last name.')
 
+        if not self.email:
+            errors.append('Please enter an email.')
+        elif not self.is_valid_email(self.email):
+            errors.append('Invalid email.')
 
-class SignUpForm(FlaskForm):
-    username = StringField(
-        'username', validators=[DataRequired(), username_exists])
-    email = StringField('email', validators=[DataRequired(), user_exists])
-    password = StringField('password', validators=[DataRequired()])
+        if not self.password:
+            errors.append('Password is required.')
+        elif len(self.password) < 5:
+            errors.append('Please make password 5 characters or longer.')
+
+        if self.password != self.confirm_password:
+            errors.append('Passwords do not match!')
+
+        return errors
+
+    def is_valid_email(self, email):
+        if '@' not in email or '.' not in email:
+            return False
+
+        email_split = email.split('@')
+        if len(parts) != 2:
+            return False
+
+        return True

@@ -1,28 +1,31 @@
-from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField
-from wtforms.validators import DataRequired, Email, ValidationError
-from flask_cors import CORS
-from flask_migrate import Migrate
-from flask_wtf.csrf import CSRFProtect, generate_csrf
-from model import Customer
+from flask_wtf.csrf import CSRFProtect
 
-def customer_exists(form, field):
-    email = field.data
-    customer = Customer.query.filter(Customer.email == email).first()
-    if not customer:
-        raise ValidationError('Email provided was not found.')
+csrf = CSRFProtect()
 
+class LoginForm:
+    def __init__(self, request):
+        self.request = request
+        self.email = None
+        self.password = None
 
-def password_matches(form, field):
-    password = field.data
-    username = form.data['username']
-    customer = Customer.query.filter(Customer.username == username).first()
-    if not customer:
-        raise ValidationError('No account exists with this username.')
-    if not customer.check_password(password):
-        raise ValidationError('Password was incorrect please renter.')
+    def validate_customer(self):
+        self.email = self.request.form.get('email')
+        self.password = self.request.form.get('password')
 
-class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired(), password_matches])
-    submit = SubmitField('Login')
+        if not self.email:
+            return False
+        if not self.password:
+            return False
+
+        return True
+
+    def get_errors(self):
+        errors = []
+
+        if not self.email:
+            errors.append('Email is required.')
+
+        if not self.password:
+            errors.append('Password is required.')
+
+        return errors

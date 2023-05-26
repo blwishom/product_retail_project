@@ -26,8 +26,12 @@ def load_user(customer_id):
 def unauthorized_callback():
     return redirect('/login')
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def home():
+    if not session.get('logged_in'):
+        flash('Please log in', 'error')
+        return redirect(url_for('login'))
+
     return 'Product Retail Home Page'
 
 @app.route('/signup', methods=['GET', 'POST'])
@@ -38,7 +42,7 @@ def signup():
 
         existing_customer = Customer.query.filter_by(username=username).first()
         if existing_customer:
-            return render_template('signup.html', error='Username is already taken')
+            return render_template('signup.html', error='Username is taken. Please choose a different one.')
 
         new_customer = Customer(username=username)
         new_customer.set_password(password)
@@ -51,19 +55,18 @@ def signup():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if current_user.is_authenticated:
-        return redirect('/')
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
 
-    form = LoginForm()
-    if form.validate_on_submit():
-        customer = Customer.query.filter_by(username=form.username.data).first()
-        if customer and customer.check_password(form.password.data):
-            login_user(customer)
-            return redirect('/')
+        customer = Customer.query.filter_by(email=email).first()
+        if customer and customer.check_password(password):
+            flash('Logged in', 'success')
+            return redirect(url_for('home'))
         else:
-            return 'Invalid username or password'
+            flash('Invalid email or password. Please re-enter.', 'error')
 
-    return render_template('login.html', form=form)
+    return render_template('login.html')
 
 @app.route('/logout')
 @login_required
