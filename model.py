@@ -31,6 +31,15 @@ class Customer(db.Model):
       db.session.commit()
       return self
 
+    def to_dict(self):
+      return {
+        'first name': self.first_name,
+        'last name': self.last_name,
+        'username': self.username,
+        'address': self. address,
+        'email': self. email
+      }
+
     @property
     def password(self):
         return self.hashed_password
@@ -42,8 +51,6 @@ class Customer(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password, password)
 
-    def __repr__(self):
-        return '' % self.id
 
 # PRODUCT MODEL
 class Product(db.Model):
@@ -55,7 +62,8 @@ class Product(db.Model):
     product_price = db.Column(db.Float, nullable=False )
     product_category = db.Column(db.String(255))
     product_brand = db.Column(db.String(255))
-
+    updated_at = db.Column(db.DateTime)
+    
     def create(self):
       db.session.add(self)
       db.session.commit()
@@ -92,6 +100,7 @@ class Review(db.Model):
     rating = db.Column(db.Float)
     comment = db.Column(db.String(255))
     created_at = db.Column(db.DateTime)
+    updated_at = db.Column(db.DateTime)
     customer = db.relationship("Customer", backref="customer_table")
     product = db.relationship("Product", backref="product_table")
 
