@@ -259,7 +259,7 @@ def product_sort(category):
                            'product_brand': result.product_brand,
                            'updated_at': result.updated_at} for result in results]
 
-    return jsonify(serialized_results)
+    return render_template('product_sort.html', products=serialized_results)
 
 #search products
 @app.route('/products/view/search/display', methods=['GET'])
