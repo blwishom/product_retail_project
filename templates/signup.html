@@ -1,27 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>SignUp</title>
+  <title>Sign Up</title>
 </head>
 <body>
-    <h1>SignUp Page</h1>
-    {% if error %}
-        <p>{{ error }}</p>
-    {% endif %}
-    <form method="POST" action="/login">
+  <h1>Sign Up</h1>
 
-        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <form method="POST" action="/signup">
+    <label for="first_name">First Name:</label>
+    <input type="text" id="first_name" name="first_name" required>
+    <br>
+    <label for="last_name">Last Name:</label>
+    <input type="text" id="last_name" name="last_name" required>
+    <br>
+    <label for="address">Address:</label>
+    <input type="address" id="address" name="address" required>
+    <br>
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required>
+    <br>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+    <br>
+    <button type="submit">Sign Up</button>
+  </form>
 
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" required>
-
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required>
-
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required>
-
-        <button type="submit">Sign Up</button>
-      </form>
+  {% if errors %}
+    <ul>
+      {% for error in errors %}
+        <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
 </body>
 </html>
