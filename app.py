@@ -13,9 +13,12 @@ from flask_wtf.csrf import CSRFProtect, generate_csrf
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///product_retail.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS']=False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['WTF_CSRF_SECRET_KEY'] = secrets.token_hex(16)
 
 db.init_app(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 
 with app.app_context():
     db.create_all()
@@ -49,7 +52,6 @@ def login():
     return {'errors': 'validation_errors_to_error_messages' (form.errors)}, 401
 
 #CUSTOMER
-
 @app.route('/customer')
 def customer():
     customers = Customer.query.all()
@@ -303,7 +305,7 @@ def update_product():
     product = Product.query.get(product_id)
     if not product:
         return jsonify({'message': 'Product not found'}), 404
-    
+
     # Update the product attributes based on the request data
     product.product_name = request.form.get('product_name')
     product.product_desc = request.form.get('product_desc')
@@ -349,6 +351,3 @@ def delete_success():
 
 if __name__ == "__main__":
     app.run(debug=True)
-  
-    
-    
