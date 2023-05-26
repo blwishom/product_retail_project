@@ -17,8 +17,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['WTF_CSRF_SECRET_KEY'] = secrets.token_hex(16)
 
 db.init_app(app)
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
+#login_manager = LoginManager(app)
+#login_manager.login_view = 'login'
 
 with app.app_context():
     db.create_all()
