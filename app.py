@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 from sqlalchemy import desc, or_
 from model import db, Customer, Product, Order, Review, order_product
 import datetime
@@ -85,7 +85,12 @@ def login():
 
         # Retrieve the user from the database based on the email
         user = Customer.query.filter_by(email=email).first()
+        if user and user.password == password:
+            # Store user session
+            session['user_id'] = user.id
 
+            # Redirect the user to the dashboard or home page
+            return redirect(url_for('dashboard'))
         if user and check_password_hash(user.password, password):
             # If the user exists and the password matches, log the user in
             login_user(user)
@@ -102,6 +107,14 @@ def login():
 
     return render_template('login.html')
 
+
+@app.route('/logout', methods=['POST'])
+def logout():
+    # Clear the session data
+    session.clear()
+
+    # Redirect the user to the login page
+    return redirect(url_for('login'))
 
 #CUSTOMER
 @app.route('/dashboard/customer')
