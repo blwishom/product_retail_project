@@ -1,4 +1,1 @@
-products/sortby=category: view all products by product id (category=id), quantity in stock (category=stock), or price (price) || products/add: add a product to the catalogue || products/(id): update an item (PUT) or delete an item (DELETE)
-
-
-reviews/view: view all reviews || reviews/search?q=(keyword): search by product name or reviewer username || reviews/add: create a review || /reviews/(review id): update an existing review
+Any accounts created moving forward will have hashed passwords. Accounts existing before-hand will not work since the hashing implementation
