@@ -1,65 +1,118 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import desc, or_
 from model import db, Customer, Product, Order, Review, order_product
-#from forms.customer_form import LoginForm
 import datetime
 import secrets
 from sqlalchemy import or_
-from flask_cors import CORS
-from flask_migrate import Migrate
-from flask_wtf.csrf import CSRFProtect, generate_csrf
+from flask_login import login_user, login_manager, current_user, LoginManager, login_required
+from werkzeug.security import check_password_hash, generate_password_hash
 
 app = Flask(__name__)
 app.secret_key = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///product_retail.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['WTF_CSRF_SECRET_KEY'] = secrets.token_hex(16)
+#app.config['WTF_CSRF_SECRET_KEY'] = secrets.token_hex(16)
 
 db.init_app(app)
-#login_manager = LoginManager(app)
-#login_manager.login_view = 'login'
+
+login_manager = LoginManager()
+login_manager.init_app(app)
 
 with app.app_context():
     db.create_all()
 
 #LOGIN/MAIN
 
+@login_manager.user_loader
+def load_user(user_id):
+    # Load the user object from the database based on the user_id
+    return Customer.query.get(int(user_id))
+
+
 @app.route('/')
 def landing_page():
     return render_template('landing.html')
 
-@app.route('/signup')
-def signup():
-    return 'customer signup route'
 
-@app.route('/login')
-def get_csrf_token():
-    # Generates CSRF token
-    csrf_token = generate_csrf()
-    response = jsonify({'csrf_token': csrf_token})
-    response.set_cookie('csrf_token', csrf_token, secure=True, httponly=True, samesite='Strict')
-    return response
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    return render_template('dashboard.html')
 
+
+@app.route('/signup/success', methods=['POST'])
+def signup_success():
+    first_name = request.form['first_name']
+    last_name = request.form['last_name']
+    username = request.form['username']
+    address = request.form['address']
+    email = request.form['email']
+    hashed_password = request.form['hashed_password']
+
+    # Generate the hashed password
+    hashed_password = generate_password_hash(hashed_password)
+
+    customer = Customer(
+        first_name=first_name,
+        last_name=last_name,
+        username=username,
+        address=address,
+        email=email,
+        hashed_password=hashed_password,
+    )
+    db.session.add(customer)
+    db.session.commit()
+
+    # Retrieve the success message from the form data
+    success_message = request.form.get('success_message2')
+
+    return render_template('signup_success.html', success_message=success_message)
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+def render_signup_form():
+    if request.method == 'POST':
+        return signup_success()
+    else:
+        return render_template('signup.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    # Logs a user in
-    form = LoginForm()
-    form['csrf_token'].data = request.cookies['csrf_token']
-    if form.validate_on_submit():
-        user = Customer.query.filter(Customer.email == form.data['email']).first()
-        form.login_user(user)
-        return user.to_dict()
-    return {'errors': 'validation_errors_to_error_messages' (form.errors)}, 401
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        # Retrieve the user from the database based on the email
+        user = Customer.query.filter_by(email=email).first()
+
+        if user and check_password_hash(user.password, password):
+            # If the user exists and the password matches, log the user in
+            login_user(user)
+
+            # Redirect to the next page if available, or the dashboard/home page
+            next_page = request.args.get('next')
+            if next_page:
+                return redirect(next_page)
+            else:
+                return redirect('/dashboard')
+        else:
+            # If authentication fails, show an error message
+            return render_template('login.html', error='Invalid email or password')
+
+    return render_template('login.html')
+
 
 #CUSTOMER
-@app.route('/customer')
+@app.route('/dashboard/customer')
+@login_required
 def customer():
     customers = Customer.query.all()
     customer_dict = {'customers': [customer.to_dict() for customer in customers]}
     return customer_dict
 
-@app.route('/customer/<int:id>/')
-# @login_required
+@app.route('/dashboard/customer/<int:id>/')
+@login_required
 def customer_home(id):
     customers = Customer.query.all()
     return 'customer id route'
@@ -67,12 +120,14 @@ def customer_home(id):
 #REVIEW
 
 #review landing page/how-to
-@app.route('/reviews/')
+@app.route('/dashboard/reviews/')
+@login_required
 def reviews():
     return render_template('reviews.html')
 
 #creating a customer review on a product
-@app.route('/reviews/add', methods=['POST'])
+@app.route('/dashboard/reviews/add', methods=['POST'])
+@login_required
 def create_review():
     data = request.get_json()
     customer_id = data['customer_id']
@@ -94,7 +149,8 @@ def create_review():
     return jsonify({'message': 'Review created successfully'}), 201
 
 # viewing all customer reviews
-@app.route('/reviews/view', methods=['GET'])
+@app.route('/dashboard/reviews/view', methods=['GET'])
+@login_required
 def view_reviews():
     reviews = Review.query.all()
     review_list = []
@@ -111,7 +167,8 @@ def view_reviews():
     
     return jsonify({'reviews': review_list}), 200
 
-@app.route('/reviews/search', methods=['GET'])
+@app.route('/dashboard/reviews/search', methods=['GET'])
+@login_required
 def search_reviews():
     search_query = request.args.get('q', '') 
     results = Review.query.filter(or_(Review.customer.has(Customer.username.ilike(f'%{search_query}%')),
@@ -128,7 +185,8 @@ def search_reviews():
     return jsonify(serialized_results)
 
 # Update a review record
-@app.route('/reviews/<int:review_id>', methods=['PUT'])
+@app.route('/dashboard/reviews/<int:review_id>', methods=['PUT'])
+@login_required
 def update_review(review_id):
     # Retrieve the review from the database
     review = Review.query.get(review_id)
@@ -158,20 +216,24 @@ def update_review(review_id):
 #PRODUCTS
 
 #product landing page/how-to
-@app.route('/products/')
+@app.route('/dashboard/products/')
+@login_required
 def products():
     return render_template('products.html')
 
-@app.route('/products/view')
+@app.route('/dashboard/products/view')
+@login_required
 def view_products():
     return render_template('view_products.html')
 
-@app.route('/products/view/search')
+@app.route('/dashboard/products/view/search')
+@login_required
 def search_product():
     return render_template('search_product.html')
 
 # Update a product record
-@app.route('/products/update', methods=['GET', 'POST'])
+@app.route('/dashboard/products/update', methods=['GET', 'POST'])
+@login_required
 def render_update_product_form():
     success_message = None
 
@@ -187,16 +249,14 @@ def render_update_product_form():
 
     return render_template('update_product.html', success_message=success_message)
 
-@app.route('/products/delete', methods=['GET', 'DELETE', 'POST'])
+@app.route('/dashboard/products/delete', methods=['GET', 'DELETE', 'POST'])
+@login_required
 def render_delete_product():
     return render_template('delete_product.html')
 
 
-@app.route('/products/created')
-def product_created():
-    return 'Product created successfully!'
-
-@app.route('/products/added', methods=['POST'])
+@app.route('/dashboard/products/added', methods=['POST'])
+@login_required
 def create_product():
     product_name = request.form['product_name']
     product_desc = request.form['product_desc']
@@ -225,7 +285,8 @@ def create_product():
     return render_template('product_created.html', success_message=success_message)
 
 
-@app.route('/products/add', methods=['GET', 'POST'])
+@app.route('/dashboard/products/add', methods=['GET', 'POST'])
+@login_required
 def render_add_product_form():
     if request.method == 'POST':
         return create_product()
@@ -233,7 +294,8 @@ def render_add_product_form():
         return render_template('add_product.html')
 
 #View products
-@app.route('/products/view/sortby=<string:category>/', methods=['GET'])
+@app.route('/dashboard/products/view/sortby=<string:category>/', methods=['GET'])
+@login_required
 def product_sort(category):
 
     match(category):
@@ -262,7 +324,8 @@ def product_sort(category):
     return render_template('product_sort.html', products=serialized_results)
 
 #search products
-@app.route('/products/view/search/display', methods=['GET'])
+@app.route('/dashboard/products/view/search/display', methods=['GET'])
+@login_required
 def search_products():
     # Get the search query from the request parameters
     search_query = request.args.get('q', '')
@@ -296,7 +359,8 @@ def search_products():
 
 
 # Update a product record
-@app.route('/products/update/updating', methods=['POST'])
+@app.route('/dashboard/products/update/updating', methods=['POST'])
+@login_required
 def update_product():
     # Retrieve the product ID from the request data
     product_id = request.form.get('product_id')
@@ -324,12 +388,14 @@ def update_product():
         db.session.rollback()
         return jsonify({'message': 'Error updating product', 'error': str(e)}), 500
 
-@app.route('/products/update/success')
+@app.route('/dashboard/products/update/success')
+@login_required
 def update_success():
     return render_template('update_success.html')
 
 
-@app.route('/products/delete/deleting', methods=['DELETE', 'POST'])
+@app.route('/dashboard/products/delete/deleting', methods=['DELETE', 'POST'])
+@login_required
 def delete_product():
     # Retrieve the product ID from the request data
     product_id = request.form.get('product_id')
@@ -345,9 +411,15 @@ def delete_product():
 
     return redirect(url_for('delete_success'))
 
-@app.route('/products/delete/success')
+@app.route('/dashboard/products/delete/success')
+@login_required
 def delete_success():
     return render_template('delete_success.html')
+
+
+with app.app_context():
+    db.create_all()
+
 
 if __name__ == "__main__":
     app.run(debug=True)

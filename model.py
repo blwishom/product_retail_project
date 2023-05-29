@@ -1,10 +1,10 @@
-#from flask import Flask, request, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 
 db = SQLAlchemy()
-###Models####
+
+###  Models  ####
 
 # ORDER_PRODUCT RELATIONAL TABLE
 order_product = db.Table(
@@ -14,8 +14,10 @@ order_product = db.Table(
     db.Column('quantity', db.Integer, nullable=False)
 )
 
+
+
 # CUSTOMER MODEL
-class Customer(db.Model):
+class Customer(db.Model, UserMixin):
     __tablename__ = "customer"
 
     customer_id = db.Column(db.Integer, primary_key=True)
@@ -25,6 +27,7 @@ class Customer(db.Model):
     address = db.Column(db.String(255), nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     hashed_password = db.Column(db.String(255), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
 
     def create(self):
       db.session.add(self)
@@ -78,18 +81,16 @@ class Product(db.Model):
 class Order(db.Model):
     __tablename__ = "order"
     order_id = db.Column(db.Integer, primary_key=True)
-    price = db.Column(db.Float, nullable=False)
     date = db.Column(db.DateTime, nullable=False)
     customer_id = db.Column(db.Integer, db.ForeignKey("customer.customer_id"))
     product_id = db.Column(db.Integer, db.ForeignKey("product.product_id"))
-    customer = db.relationship("Customer", backref="customer")
-    product = db.relationship("Product", backref="product")
+    customer = db.relationship("Customer", backref="orders")
+    product = db.relationship("Product", backref="orders")
 
     def create(self):
-      db.session.add(self)
-      db.session.commit()
-      return self
-
+        db.session.add(self)
+        db.session.commit()
+        return self
     def __repr__(self):
         return '' % self.id
 

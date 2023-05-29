@@ -77,7 +77,7 @@
 <body>
   <div class="container">
     <h1>Update Product</h1>
-    <form method="POST" action="/products/update/updating">
+    <form method="POST" action="/dashboard/products/update/updating">
       <label for="product_id">Product ID:</label>
       <input type="text" name="product_id" id="product_id" required><br>
       <label for="product_name">Product Name:</label>
@@ -96,14 +96,14 @@
       <!-- Submit button -->
       <input type="submit" value="Update Product">
       <br>
-      <a href="/products/">Back</a>
+      <a href="/dashboard/products/">Back</a>
     </form>
 
     {% if success_message %}
     <div id="success-message">
       {{ success_message }}
       <br>
-      <button onclick="redirectToPage('/products/update')">Go Back</button>
+      <button onclick="redirectToPage('/dashboard/products/update')">Go Back</button>
     </div>
     {% endif %}
   </div>

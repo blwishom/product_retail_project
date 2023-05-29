@@ -27,23 +27,42 @@
             text-decoration: none;
             color: #337ab7;
         }
+        .center {
+            text-align: center;
+        }
+        
+        .center a {
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+        
+        .center a:hover {
+            color: #337ab7;
+        }
     </style>
 </head>
 <body>
     <h1>Review Listings Menu</h1>
     <div class="menu">
         <div class="menu-item">
-            <a class="menu-link" href="/reviews/view">View All Reviews</a>
+            <a class="menu-link" href="/dashboard/reviews/view">View All Reviews</a>
         </div>
         <div class="menu-item">
-            <a class="menu-link" href="/reviews/add">Add Review</a>
+            <a class="menu-link" href="/dashboard/reviews/add">Add Review</a>
         </div>
         <div class="menu-item">
-            <a class="menu-link" href="/reviews/product_id">Update Review</a>
+            <a class="menu-link" href="/dashboard/reviews/product_id">Update Review</a>
         </div>
         <div class="menu-item">
-            <a class="menu-link" href="/reviews/search?q=query">Search For Review By Query</a>
+            <a class="menu-link" href="/dashboard/reviews/search?q=query">Search For Review By Query</a>
         </div>
+    </div>
+    <br>
+    <br>
+    <div class="center">
+        <a href="/dashboard">Main Menu</a>
     </div>
     <!-- Rest of the page content -->
 </body>
