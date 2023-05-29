@@ -41,6 +41,10 @@
       margin-bottom: 16px;
     }
 
+    .button-container {
+      text-align: center;
+    }
+
     button[type="submit"] {
       background-color: #4CAF50;
       color: #fff;
@@ -64,12 +68,32 @@
       color: #ff0000;
     }
 
-    .back-button {
-      display: block;
+    .back-button-container {
       text-align: center;
       margin-top: 20px;
     }
+
+    .back-button {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #ddd;
+      color: #333;
+      border: none;
+      border-radius: 4px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .back-button:hover {
+      background-color: #ccc;
+    }
   </style>
+  <script>
+    function goBack() {
+      window.history.back();
+    }
+  </script>
 </head>
 <body>
   <h1>Sign Up</h1>
@@ -90,10 +114,14 @@
     <label for="email">Email:</label>
     <input type="email" id="email" name="email" required>
 
-    <label for="hashed_password">Password:</label>
-    <input type="hashed_password" id="hashed_password" name="hashed_password" required>
+    <div class="password-container">
+      <label for="hashed_password">Password:</label>
+      <input type="password" id="hashed_password" name="hashed_password" required>
+    </div>
 
-    <button type="submit">Sign Up</button>
+    <div class="button-container">
+      <button type="submit">Sign Up</button>
+    </div>
 
     <!-- Add a hidden input field for the success message -->
     <input type="hidden" name="success_message2" value="Signup Successful!">
@@ -108,6 +136,8 @@
     </ul>
   {% endif %}
 
-  <a class="back-button" href="/">Back</a>
+  <div class="back-button-container">
+    <button class="back-button" onclick="goBack()">Back</button>
+  </div>
 </body>
 </html>
