@@ -138,28 +138,40 @@ def customer_home(id):
 def reviews():
     return render_template('reviews.html')
 
-#creating a customer review on a product
-@app.route('/dashboard/reviews/add', methods=['POST'])
+#add
+@app.route('/dashboard/reviews/added', methods=['POST'])
 @login_required
 def create_review():
-    data = request.get_json()
-    customer_id = data['customer_id']
-    product_id = data['product_id']
-    rating = data['rating']
-    comment = data['comment']
+    customer_id = request.form['customer_id']
+    product_id = request.form['product_id']
+    rating = request.form['rating']
+    comment = request.form['comment']
     created_at = datetime.datetime.now()
 
     review = Review(
+        
         customer_id=customer_id,
         product_id=product_id,
         rating=rating,
         comment=comment,
         created_at=created_at
-        )
+    )
     db.session.add(review)
     db.session.commit()
 
-    return jsonify({'message': 'Review created successfully'}), 201
+    # Retrieve the success message from the form data
+    success_message = request.form.get('success_message')
+
+    return render_template('review_created.html', success_message=success_message)
+
+
+@app.route('/dashboard/reviews/add', methods=['GET', 'POST'])
+@login_required
+def render_add_review_form():
+    if request.method == 'POST':
+        return create_review()
+    else:
+        return render_template('add_review.html')
 
 # viewing all customer reviews
 @app.route('/dashboard/reviews/view', methods=['GET'])
@@ -267,7 +279,7 @@ def render_update_product_form():
 def render_delete_product():
     return render_template('delete_product.html')
 
-
+#add
 @app.route('/dashboard/products/added', methods=['POST'])
 @login_required
 def create_product():
